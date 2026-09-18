@@ -4,11 +4,20 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
 #include "xmath/xmath.h"
 #include "vpu_helper.h"
 #include "vpu_const_vects.h"
 
+
+void vpu_memcpy(
+    void* dst,
+    const void* src,
+    unsigned bytes)
+{
+  memcpy(dst, src, bytes);
+}
 
 void vect_s32_merge_accs(
     int32_t a[],
