@@ -18,6 +18,8 @@
 TEST_GROUP_RUNNER(vect_dot) {
   RUN_TEST_CASE(vect_dot, vect_s32_dot_prepare);
   RUN_TEST_CASE(vect_dot, vect_s16_dot);
+  RUN_TEST_CASE(vect_dot, vect_s16_dot_basic);
+  RUN_TEST_CASE(vect_dot, vect_s16_dot_long);
   RUN_TEST_CASE(vect_dot, vect_s32_dot_basic);
 }
 
@@ -34,6 +36,29 @@ static char msg_buff[200];
       sprintf(msg_buff, "(test vector @ line %u)", (LINE_NUM));       \
       TEST_ASSERT_EQUAL_MESSAGE((EXPECTED), (ACTUAL), msg_buff);      \
     }} while(0)
+
+
+/**
+ * A VX4 16-bit multiply-accumulate drops the LSB of its result, so every odd
+ * product costs the inner product a count. `vect_s16_dot()` is therefore never
+ * above the true result, and never further than `LENGTH` below it. The bound has
+ * to scale with the length -- a fixed tolerance would be met only by chance.
+ */
+#if defined(__VX4B__)
+#  define TEST_ASSERT_DOT_S16(EXPECTED, ACTUAL, LENGTH) do{                          \
+      if( ((ACTUAL) > (EXPECTED)) || (((EXPECTED)-(ACTUAL)) > (int64_t)(LENGTH)) ){  \
+        sprintf(msg_buff, "(length %u; expected %lld; got %lld)",                    \
+                (unsigned) (LENGTH), (long long) (EXPECTED), (long long) (ACTUAL));  \
+        TEST_FAIL_MESSAGE(msg_buff);                                                 \
+      }} while(0)
+#else
+#  define TEST_ASSERT_DOT_S16(EXPECTED, ACTUAL, LENGTH) do{                          \
+      if((EXPECTED) != (ACTUAL)){                                                    \
+        sprintf(msg_buff, "(length %u; expected %lld; got %lld)",                    \
+                (unsigned) (LENGTH), (long long) (EXPECTED), (long long) (ACTUAL));  \
+        TEST_FAIL_MESSAGE(msg_buff);                                                 \
+      }} while(0)
+#endif
 
 
 
@@ -128,21 +153,128 @@ TEST(vect_dot, vect_s16_dot)
 
         int64_t result = vect_s16_dot(B, C, len);
 
-        // printf("============\n");
-        // printf("Length: %u\n", len);
-        // printf("Expected: %lld     (%012llX)\n", expected, (uint64_t) expected);
-        // printf("Got:      %lld     (%012llX)\n", result,   (uint64_t) result);
-        // printf("============\n");
-
-#if defined(__VX4B__)
-        TEST_ASSERT_INT64_WITHIN(128, expected, result);
-#else
-        TEST_ASSERT(expected == result);
-#endif
+        TEST_ASSERT_DOT_S16(expected, result, len);
     }
 }
 #undef MAX_LEN
 #undef REPS
+
+
+
+/**
+ * Fill the stack below the caller with non-zero junk, so that a function called
+ * straight afterwards cannot get away with reading scratch space it never
+ * initialised.
+ */
+static void __attribute__((noinline)) poison_stack(void)
+{
+    volatile int16_t junk[512];
+    for(unsigned int i = 0; i < 512; i++)
+        junk[i] = INT16_MAX;
+}
+
+
+#define MAX_LEN     (64)
+
+/**
+ * Deterministic corner cases: every length around the 16-element vector boundary
+ * crossed with the extremes of the input range.
+ *
+ * The elements past `length` are poisoned with the largest-magnitude product
+ * available, so that a vector implementation which fails to mask off the final
+ * partial vector gives an obviously wrong answer rather than a plausible one. The
+ * stack is poisoned too, for any scratch vectors the implementation keeps there.
+ */
+TEST(vect_dot, vect_s16_dot_basic)
+{
+    const unsigned lengths[] = { 0, 1, 2, 3, 15, 16, 17, 31, 32, 33, 47, 48, 63, MAX_LEN };
+
+    const struct {
+        int16_t b;
+        int16_t c;
+    } values[] = {
+        {         0,         0 },
+        {         1,         1 },
+        {        -1,        -1 },
+        {         1,        -1 },
+        { INT16_MAX, INT16_MAX },   // largest positive product; every product odd
+        { INT16_MIN, INT16_MIN },   // largest product of all; every product even
+        { INT16_MIN, INT16_MAX },   // largest negative product
+        { INT16_MAX, INT16_MIN },
+        {        -1, INT16_MIN },
+    };
+
+    int16_t WORD_ALIGNED B[MAX_LEN];
+    int16_t WORD_ALIGNED C[MAX_LEN];
+
+    const unsigned N_lengths = sizeof(lengths)/sizeof(lengths[0]);
+    const unsigned N_values  = sizeof(values)/sizeof(values[0]);
+
+    for(unsigned int l = 0; l < N_lengths; l++){
+        const unsigned len = lengths[l];
+
+        for(unsigned int v = 0; v < N_values; v++){
+            setExtraInfo_R(l * N_values + v);
+
+            for(unsigned int i = 0; i < MAX_LEN; i++){
+                B[i] = INT16_MAX;
+                C[i] = INT16_MIN;
+            }
+
+            for(unsigned int i = 0; i < len; i++){
+                B[i] = values[v].b;
+                C[i] = values[v].c;
+            }
+
+            const int64_t expected = ((int64_t) len) * values[v].b * values[v].c;
+
+            poison_stack();
+            const int64_t result = vect_s16_dot(B, C, len);
+
+            TEST_ASSERT_DOT_S16(expected, result, len);
+        }
+    }
+}
+#undef MAX_LEN
+
+
+
+// Long enough for the inner product to exceed 2^46 in magnitude, and not a multiple
+// of 16 so that the final partial vector is exercised too.
+#define LONG_LEN    (65536 + 37)
+
+// b[] and c[] share this buffer, offset by two elements. The spare elements on the
+// end cover that offset and a full vector of over-read past `length`.
+static int16_t WORD_ALIGNED long_buff[LONG_LEN + 2 + 16];
+
+/**
+ * Inner products at the top of the documented range, where the 16 lane
+ * accumulators sum to more than 32 bits even after dropping their low bits.
+ */
+TEST(vect_dot, vect_s16_dot_long)
+{
+    // INT16_MIN, INT16_MIN, INT16_MAX, INT16_MAX, ...
+    for(unsigned int i = 0; i < sizeof(long_buff)/sizeof(long_buff[0]); i++)
+        long_buff[i] = (i & 2)? INT16_MAX : INT16_MIN;
+
+    // An offset of 0 squares each element; an offset of 2 pairs every INT16_MIN
+    // with an INT16_MAX, for the largest negative result.
+    for(unsigned int offset = 0; offset <= 2; offset += 2){
+        setExtraInfo_R(offset);
+
+        const int16_t* b = &long_buff[0];
+        const int16_t* c = &long_buff[offset];
+
+        int64_t expected = 0;
+        for(unsigned int i = 0; i < LONG_LEN; i++)
+            expected += ((int32_t) b[i]) * c[i];
+
+        const int64_t result = vect_s16_dot(b, c, LONG_LEN);
+
+        TEST_ASSERT_DOT_S16(expected, result, LONG_LEN);
+    }
+}
+#undef LONG_LEN
 
 
 #define MAX_LEN     40

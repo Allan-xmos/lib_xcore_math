@@ -367,7 +367,13 @@ headroom_t vect_s16_clip(
  * 
  * The sum @math{a} is accumulated simultaneously into 16 48-bit accumulators which are summed
  * together at the final step. So long as `length` is less than roughly 2 million, no overflow or
- * saturation of the resulting sum is possible. 
+ * saturation of the resulting sum is possible.
+ *
+ * On the `vx4b` architecture the carries out of the low half of each accumulator are scaled by
+ * two, which halves that limit to roughly 1 million. A 16-bit multiply-accumulate there also
+ * drops the least significant bit of its result, so each product of two odd inputs loses a count.
+ * The result is consequently never greater than the exact inner product, and never more than
+ * `length` less than it.
  * @endparblock
  * 
  * @param[in] b             Input vector @vector{b}
