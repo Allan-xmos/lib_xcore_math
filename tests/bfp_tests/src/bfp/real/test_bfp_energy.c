@@ -60,11 +60,10 @@ TEST(bfp_energy, bfp_s16_energy)
 
         float_s64_t result = bfp_s16_energy(&B);
 
-#if defined(__VX4B__)
-        TEST_ASSERT_INT64_WITHIN(256, sum64, result.mant);
-#else
-        TEST_ASSERT(sum64 == result.mant);
-#endif
+        // On VX4 the mantissa is below the exact energy by one count for each odd
+        // element; vect_s16_dot_expected() models that exactly
+        TEST_ASSERT_EQUAL_INT64(vect_s16_dot_expected(B.data, B.data, B.length), result.mant);
+        TEST_ASSERT(sum64 >= result.mant);
     }
 }
 

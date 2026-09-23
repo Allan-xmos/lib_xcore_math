@@ -73,11 +73,11 @@ TEST(bfp_dot, bfp_s16_dot)
         int64_t expected_s64 = conv_double_to_s64(expected, result.exp, &err);
         TEST_ASSERT_EQUAL(0, err);
 
-#if defined(__VX4B__)
-        TEST_ASSERT_INT64_WITHIN(164, expected_s64, result.mant);
-#else
-        TEST_ASSERT(expected_s64 == result.mant);
-#endif
+        // On VX4 the mantissa is below the exact result by one count for each
+        // product of two odd elements; vect_s16_dot_expected() models that exactly
+        TEST_ASSERT_EQUAL(B.exp + C.exp, result.exp);
+        TEST_ASSERT_EQUAL_INT64(vect_s16_dot_expected(B.data, C.data, B.length), result.mant);
+        TEST_ASSERT(expected_s64 >= result.mant);
     }
 }
 

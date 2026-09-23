@@ -370,10 +370,12 @@ headroom_t vect_s16_clip(
  * saturation of the resulting sum is possible.
  *
  * On the `vx4b` architecture the carries out of the low half of each accumulator are scaled by
- * two, which halves that limit to roughly 1 million. A 16-bit multiply-accumulate there also
- * drops the least significant bit of its result, so each product of two odd inputs loses a count.
- * The result is consequently never greater than the exact inner product, and never more than
- * `length` less than it.
+ * two, which halves that limit: no overflow or saturation is possible so long as `length` is at
+ * most 1048560 (@math{16 \cdot 65535}). A 16-bit multiply-accumulate there also rounds its result
+ * down to even, so each product of two odd inputs loses exactly one count. The result is
+ * therefore the exact inner product less the number of indices @math{k} for which both
+ * @math{b_k} and @math{c_k} are odd. It is never greater than the exact inner product, and never
+ * more than `length` less than it.
  * @endparblock
  * 
  * @param[in] b             Input vector @vector{b}

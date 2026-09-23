@@ -70,11 +70,11 @@ TEST(bfp_complex_energy, bfp_complex_s16_energy)
 
         TEST_ASSERT_EQUAL(0, conv_error);
 
-#if defined(__VX4B__)
-        TEST_ASSERT_INT64_WITHIN(550, expected, result.mant);
-#else
-        TEST_ASSERT(expected == result.mant);
-#endif
+        // On VX4 the mantissa is below the exact energy by one count for each odd
+        // real or imaginary part; vect_s16_dot_expected() models that exactly
+        TEST_ASSERT_EQUAL_INT64(vect_s16_dot_expected(B.real, B.real, B.length)
+                              + vect_s16_dot_expected(B.imag, B.imag, B.length), result.mant);
+        TEST_ASSERT(expected >= result.mant);
     }
 }
 

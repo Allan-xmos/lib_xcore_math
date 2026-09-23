@@ -29,16 +29,18 @@ int64_t vect_s16_dot(
 
     The carry is folded in with a vector of 2s rather than 1s, which is why the
     upper planes are worth 2^15 instead of 2^16 above. A VX4 16-bit multiply
-    accumulate drops the LSB of its result, so an odd addend loses a count; the
-    products of ACC_LOW (worth 1) can absorb that, but the carries (worth 2^16)
-    cannot. Scaling the carries by two keeps every addend -- and therefore the
-    running accumulator -- even, so the fold is exact. The cost is one bit of
-    range in the carry plane, which limits `length` to roughly a million rather
-    than the two million of the XS3 implementation.
+    accumulate rounds its 32-bit result down to even, so an odd sum loses a
+    count; the products of ACC_LOW (worth 1) can absorb that, but the carries
+    (worth 2^16) cannot. Scaling the carries by two keeps every addend -- and
+    therefore the running accumulator -- even, so the fold is exact. The cost is
+    one bit of range in the carry plane: a lane can take at most 65535 products
+    of 2^30 before ACC_MID:ACC_HIGH saturates (at the odd value 0x7FFFFFFF), so
+    `length` is limited to 16*65535 = 1048560 rather than the ~2 million of the
+    XS3 implementation.
 
-    The residual error is the LSB the low plane drops whenever b[k] and c[k] are
-    both odd. Since that can occur for every term, the result can be up to
-    length below the true inner product in the worst case.
+    Because ACC_LOW is always even, the residual error is exactly one count for
+    each k where b[k] and c[k] are both odd, so the result is deterministic and
+    at most `length` below the true inner product.
 */
 
 

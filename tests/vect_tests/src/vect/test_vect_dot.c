@@ -39,26 +39,19 @@ static char msg_buff[200];
 
 
 /**
- * A VX4 16-bit multiply-accumulate drops the LSB of its result, so every odd
- * product costs the inner product a count. `vect_s16_dot()` is therefore never
- * above the true result, and never further than `LENGTH` below it. The bound has
- * to scale with the length -- a fixed tolerance would be met only by chance.
+ * `vect_s16_dot()` is deterministic on every architecture, so its result is
+ * checked exactly against `vect_s16_dot_expected()`, which models the one count a
+ * VX4 multiply-accumulate loses on each product of two odd elements. A tolerance
+ * would hide real errors: on VX4 a product of two +-1s rounds to 0 or -2, so a
+ * run of them can be dropped without moving the result out of any bound.
  */
-#if defined(__VX4B__)
-#  define TEST_ASSERT_DOT_S16(EXPECTED, ACTUAL, LENGTH) do{                          \
-      if( ((ACTUAL) > (EXPECTED)) || (((EXPECTED)-(ACTUAL)) > (int64_t)(LENGTH)) ){  \
-        sprintf(msg_buff, "(length %u; expected %lld; got %lld)",                    \
-                (unsigned) (LENGTH), (long long) (EXPECTED), (long long) (ACTUAL));  \
-        TEST_FAIL_MESSAGE(msg_buff);                                                 \
-      }} while(0)
-#else
-#  define TEST_ASSERT_DOT_S16(EXPECTED, ACTUAL, LENGTH) do{                          \
-      if((EXPECTED) != (ACTUAL)){                                                    \
-        sprintf(msg_buff, "(length %u; expected %lld; got %lld)",                    \
-                (unsigned) (LENGTH), (long long) (EXPECTED), (long long) (ACTUAL));  \
-        TEST_FAIL_MESSAGE(msg_buff);                                                 \
-      }} while(0)
-#endif
+#define TEST_ASSERT_DOT_S16(B, C, LENGTH, ACTUAL) do{                                \
+    const int64_t _expected = vect_s16_dot_expected((B), (C), (LENGTH));             \
+    if(_expected != (ACTUAL)){                                                       \
+      sprintf(msg_buff, "(length %u; expected %lld; got %lld)",                      \
+              (unsigned) (LENGTH), (long long) _expected, (long long) (ACTUAL));     \
+      TEST_FAIL_MESSAGE(msg_buff);                                                   \
+    }} while(0)
 
 
 
@@ -142,18 +135,14 @@ TEST(vect_dot, vect_s16_dot)
         headroom_t B_hr = pseudo_rand_uint(&seed, 0, 15);
         headroom_t C_hr = pseudo_rand_uint(&seed, 0, 15);
 
-        int64_t expected = 0;
-        
         for(unsigned int i = 0; i < len; i++){
             B[i] = pseudo_rand_int16(&seed) >> B_hr;
             C[i] = pseudo_rand_int16(&seed) >> C_hr;
-
-            expected += ((int32_t)B[i]) * C[i];
         }
 
         int64_t result = vect_s16_dot(B, C, len);
 
-        TEST_ASSERT_DOT_S16(expected, result, len);
+        TEST_ASSERT_DOT_S16(B, C, len, result);
     }
 }
 #undef MAX_LEN
@@ -164,9 +153,16 @@ TEST(vect_dot, vect_s16_dot)
 /**
  * Fill the stack below the caller with non-zero junk, so that a function called
  * straight afterwards cannot get away with reading scratch space it never
- * initialised.
+ * initialised. It must not be inlined, or the junk would land in the caller's own
+ * frame instead.
  */
-static void __attribute__((noinline)) poison_stack(void)
+#if defined(_MSC_VER)
+#  define POISON_NOINLINE   __declspec(noinline)
+#else
+#  define POISON_NOINLINE   __attribute__((noinline))
+#endif
+
+static POISON_NOINLINE void poison_stack(void)
 {
     volatile int16_t junk[512];
     for(unsigned int i = 0; i < 512; i++)
@@ -226,12 +222,10 @@ TEST(vect_dot, vect_s16_dot_basic)
                 C[i] = values[v].c;
             }
 
-            const int64_t expected = ((int64_t) len) * values[v].b * values[v].c;
-
             poison_stack();
             const int64_t result = vect_s16_dot(B, C, len);
 
-            TEST_ASSERT_DOT_S16(expected, result, len);
+            TEST_ASSERT_DOT_S16(B, C, len, result);
         }
     }
 }
@@ -239,17 +233,22 @@ TEST(vect_dot, vect_s16_dot_basic)
 
 
 
-// Long enough for the inner product to exceed 2^46 in magnitude, and not a multiple
-// of 16 so that the final partial vector is exercised too.
-#define LONG_LEN    (65536 + 37)
+// Long enough for the inner product to reach about 2^42 in magnitude, and not a
+// multiple of 16 so that the final partial vector is exercised too.
+//
+// The buffer is static and shares the tile with every other test in this image,
+// so it must stay small: at 64k elements it left too little stack for the
+// mat_mul tests. The top of the documented range (~1M elements) can't be reached
+// in RAM at all.
+#define LONG_LEN    (4096 + 37)
 
 // b[] and c[] share this buffer, offset by two elements. The spare elements on the
 // end cover that offset and a full vector of over-read past `length`.
 static int16_t WORD_ALIGNED long_buff[LONG_LEN + 2 + 16];
 
 /**
- * Inner products at the top of the documented range, where the 16 lane
- * accumulators sum to more than 32 bits even after dropping their low bits.
+ * Inner products large enough that every lane's carry plane is non-zero and the
+ * 16 lanes sum to well over 32 bits, in both signs.
  */
 TEST(vect_dot, vect_s16_dot_long)
 {
@@ -265,13 +264,9 @@ TEST(vect_dot, vect_s16_dot_long)
         const int16_t* b = &long_buff[0];
         const int16_t* c = &long_buff[offset];
 
-        int64_t expected = 0;
-        for(unsigned int i = 0; i < LONG_LEN; i++)
-            expected += ((int32_t) b[i]) * c[i];
-
         const int64_t result = vect_s16_dot(b, c, LONG_LEN);
 
-        TEST_ASSERT_DOT_S16(expected, result, LONG_LEN);
+        TEST_ASSERT_DOT_S16(b, c, LONG_LEN, result);
     }
 }
 #undef LONG_LEN

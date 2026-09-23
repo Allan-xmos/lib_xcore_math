@@ -125,3 +125,12 @@ C_API void print_vect_double(double * B, unsigned length, conv_error_e* error);
 // for each test case.
 #define SEED_FROM_FUNC_NAME()    get_seed(__func__, sizeof(__func__))
 C_API unsigned get_seed(const char* str, const unsigned len);
+
+
+// The value `vect_s16_dot(b, c, length)` is expected to return.
+//
+// On most architectures this is the exact inner product. A VX4 16-bit multiply-
+// accumulate rounds its result down to even, and `vect_s16_dot()` keeps each
+// accumulator even, so there every product of two odd elements comes out exactly
+// one below its true value.
+C_API int64_t vect_s16_dot_expected(const int16_t b[], const int16_t c[], const unsigned length);

@@ -29,6 +29,24 @@ unsigned get_seed(
   return seed;
 }
 
+int64_t vect_s16_dot_expected(
+    const int16_t b[],
+    const int16_t c[],
+    const unsigned length)
+{
+  int64_t sum = 0;
+
+  for(unsigned int k = 0; k < length; k++){
+    sum += ((int32_t) b[k]) * c[k];
+#if defined(__VX4B__)
+    if((b[k] & 1) && (c[k] & 1))
+      sum -= 1;
+#endif
+  }
+
+  return sum;
+}
+
 unsigned getTimestamp()
 {
 #if __xcore__

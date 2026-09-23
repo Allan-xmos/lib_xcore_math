@@ -4,6 +4,7 @@ lib_xcore_math change log
 UNRELEASED
 ----------
 
+  * ADDED: Assembly implementation of `vect_s16_dot()` for the `vx4b` architecture
   * FIXED: Added headroom to `vect_s32_sqrt_prepare()` and `vect_s16_sqrt_prepare()` to avoid 
     overflow in corner cases.
 
