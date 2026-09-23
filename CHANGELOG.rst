@@ -6,6 +6,8 @@ UNRELEASED
 
   * FIXED: Added headroom to `vect_s32_sqrt_prepare()` and `vect_s16_sqrt_prepare()` to avoid 
     overflow in corner cases.
+  * FIXED: `ALIGNMENT()`, `WORD_ALIGNED` and `DWORD_ALIGNED` had no effect on `vx4b`, as the
+    `vx4b` compiler does not define `__xcore__`
 
 3.0.0
 -----
