@@ -7,7 +7,7 @@
 #include "../asm_helper.h"
 
 .text
-.p2align 2
+.p2align 5
 
 /*  
     void chunk_q30_power_series(
@@ -31,6 +31,8 @@
 #define tmp         s4
 #define _32         s5
 
+// Tuned for speed
+.skip 10
 FUNCTION_NAME:
 xm.entsp (NSTACKWORDS)*4
 xm.stdsp  s3,s2,0

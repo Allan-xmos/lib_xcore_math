@@ -41,7 +41,7 @@ headroom_t vect_complex_s16_scale(
 
 
 .text
-.p2align 2
+.p2align 5
 
 /*
     We're doing this:

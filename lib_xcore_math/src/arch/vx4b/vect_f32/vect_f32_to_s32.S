@@ -30,7 +30,7 @@
 #define mant1     s2
 #define mant0     s3
 
-.p2align 4
+.p2align 5
 FUNC_NAME:
   { li t3, 23 ; xm.entsp (NSTACKWORDS)*4 }
     xm.stdsp s2, s3, 0

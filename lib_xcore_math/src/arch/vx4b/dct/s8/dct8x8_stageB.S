@@ -35,7 +35,7 @@ headroom_t dct8_inversex8_stageB(
 .text
 .global FUNCTION_NAME
 .type FUNCTION_NAME,@function
-.p2align 4
+.p2align 5
 
 #define STK_BUFF      (NSTACKWORDS - 32-1)
 
@@ -50,6 +50,8 @@ headroom_t dct8_inversex8_stageB(
 #define _16     s5
 #define sat     s6
 
+// Tuned for speed
+.skip 4
 FUNCTION_NAME:
   xm.entsp (NSTACKWORDS)*4
   xm.stdsp  s3,s2,0

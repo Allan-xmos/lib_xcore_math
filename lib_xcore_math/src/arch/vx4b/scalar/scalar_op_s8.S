@@ -314,6 +314,9 @@ vpu_int8_acc_t vlmaccr8(
 #define FUNCTION_NAME   vlmaccr8
 #define NSTACKWORDS     (12)
 FUNC_START
+.p2align 5
+// Tuned for speed
+.skip 4
 FUNCTION_NAME:
 { nop                                   ; xm.entsp (NSTACKWORDS)*4              }
 { xm.mkmski s8, 16                      ; sw s8, 32                          (sp) }

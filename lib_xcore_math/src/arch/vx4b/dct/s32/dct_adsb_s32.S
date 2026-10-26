@@ -21,7 +21,7 @@ headroom_t dct_adsb_s32(
 .text
 .global FUNCTION_NAME
 .type FUNCTION_NAME,@function
-.p2align 2
+.p2align 5
 
 #define sums        a0
 #define diffs       a1
@@ -32,6 +32,8 @@ headroom_t dct_adsb_s32(
 #define _32         s4
 
 
+// Tuned for speed
+.skip 2
 FUNCTION_NAME:
 xm.entsp (NSTACKWORDS)*4
 xm.stdsp  s3,s2,0

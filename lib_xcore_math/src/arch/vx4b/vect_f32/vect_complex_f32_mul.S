@@ -41,7 +41,7 @@
 #define A_im      s7
 
 
-.p2align 4
+.p2align 5
 FUNC_NAME:
   xm.entsp (NSTACKWORDS)*4
   xm.stdsp  s3,s2,0

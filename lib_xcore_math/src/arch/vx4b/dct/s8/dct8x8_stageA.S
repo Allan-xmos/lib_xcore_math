@@ -49,6 +49,7 @@ headroom_t dct8x8_stageA(
 // could saturate the accumulators) so we down-shift the accumulators 10 bits.
 .L_sat_vec: .short 10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10
 
+.p2align 5
 FUNCTION_NAME:
   xm.entsp (NSTACKWORDS)*4
   xm.stdsp  s3,s2,0

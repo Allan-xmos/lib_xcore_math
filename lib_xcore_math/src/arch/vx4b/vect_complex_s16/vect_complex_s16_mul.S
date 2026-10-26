@@ -21,7 +21,7 @@ headroom_t vect_complex_s16_mul(
 */
 
 .text
-.p2align 2
+.p2align 5
 
 #define NSTACKVECS      (4)
 #define NSTACKWORDS     (12+8*(NSTACKVECS))
@@ -68,6 +68,8 @@ headroom_t vect_complex_s16_mul(
 */
 
 
+// Tuned for speed
+.skip 8
 FUNCTION_NAME:
     xm.entsp (NSTACKWORDS)*4
     xm.stdsp  s3,s2,8

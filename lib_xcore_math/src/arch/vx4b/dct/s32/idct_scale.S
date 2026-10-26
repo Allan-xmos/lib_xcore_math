@@ -19,7 +19,7 @@ void idct_scale(
 .text
 .global FUNCTION_NAME
 .type FUNCTION_NAME,@function
-.p2align 2
+.p2align 5
 
 
 #define x        a0
@@ -29,6 +29,8 @@ void idct_scale(
 #define _32      s2
 
 
+// Tuned for speed
+.skip 20
 FUNCTION_NAME:
   xm.entsp (NSTACKWORDS)*4
   xm.stdsp  s3,s2,0

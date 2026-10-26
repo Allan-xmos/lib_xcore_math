@@ -14,7 +14,7 @@ headroom_t vect_s16_headroom(
 #include "../asm_helper.h"
 
 .text
-.p2align 2
+.p2align 5
 
 #define NSTACKWORDS     12
 
@@ -82,6 +82,9 @@ headroom_t vect_s32_headroom(
 
 #define FUNCTION_NAME vect_s32_headroom
 
+.p2align 5
+// Tuned for speed
+.skip 4
 FUNCTION_NAME:
     { li a3, 32                         ; xm.entsp (NSTACKWORDS)*4              }
 

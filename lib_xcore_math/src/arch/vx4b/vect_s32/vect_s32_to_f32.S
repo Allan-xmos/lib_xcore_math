@@ -31,7 +31,7 @@
 
 #define _0      t3
 
-.p2align 4
+.p2align 5
 FUNC_NAME:
   { li _0, 0                            ; xm.entsp (NSTACKWORDS)*4              }
     xm.stdsp s2, s3, 0

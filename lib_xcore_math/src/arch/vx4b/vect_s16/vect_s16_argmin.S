@@ -15,7 +15,7 @@ unsigned vect_s16_argmin(
 #include "../asm_helper.h"
 
 .text
-.p2align 2
+.p2align 5
 
 #define NSTACKVECS      (3)
 #define NSTACKWORDS     (8 + 8*NSTACKVECS)
@@ -38,6 +38,8 @@ unsigned vect_s16_argmin(
 #define vec_ones    s5      // ![0x%08X]
 
 
+// Tuned for speed
+.skip 4
 FUNCTION_NAME:
 
     xm.entsp (NSTACKWORDS)*4

@@ -8,7 +8,7 @@
 
 
 .text
-.p2align 2
+.p2align 5
 
 #define NSTACKWORDS     32
 
@@ -26,6 +26,8 @@ void vect_s16_set(
     const int16_t value,
     const unsigned length);
 */
+// Tuned for speed
+.skip 8
 vect_s16_set:
         xm.entsp (NSTACKWORDS)*4
     { slli t3, value, 16                ; slli a3, length, SIZEOF_LOG2_S16      }

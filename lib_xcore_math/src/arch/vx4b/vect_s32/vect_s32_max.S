@@ -17,7 +17,7 @@ int32_t vect_s32_max(
 #include "../asm_helper.h"
 
 .text
-.p2align 2
+.p2align 5
 
 #define NSTACKVECS      (2)
 #define NSTACKWORDS     (8 + 8*NSTACKVECS)
@@ -36,6 +36,8 @@ int32_t vect_s32_max(
 .global FUNCTION_NAME
 .type FUNCTION_NAME,@function
 
+// Tuned for speed
+.skip 4
 FUNCTION_NAME:
 
     xm.entsp (NSTACKWORDS)*4

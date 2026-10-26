@@ -18,7 +18,7 @@ headroom_t vect_complex_s32_mag(
 */
 
 .text
-.p2align 2
+.p2align 5
 
 #define NSTACKVECS      (2)
 #define NSTACKWORDS     (8+(8*NSTACKVECS))
@@ -42,6 +42,8 @@ headroom_t vect_complex_s32_mag(
 #define tail_bytes  s7
 
 
+// Tuned for speed
+.skip 4
 FUNCTION_NAME:
     xm.entsp (NSTACKWORDS)*4
     xm.stdsp  s3,s2,8

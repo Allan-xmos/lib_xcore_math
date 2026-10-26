@@ -40,7 +40,7 @@ void filter_fir_s16_push_sample_down(
 .text
 .globl FUNCTION_NAME;
 .type FUNCTION_NAME,@function
-.p2align 4
+.p2align 5
 
 FUNCTION_NAME:
         xm.entsp (NSTACKWORDS)*4

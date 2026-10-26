@@ -20,7 +20,7 @@ void idct_adsb(
 .text
 .global FUNCTION_NAME
 .type FUNCTION_NAME,@function
-.p2align 2
+.p2align 5
 
 #define sums        a0
 #define diffs       a1
@@ -30,6 +30,8 @@ void idct_adsb(
 #define _32         s3
 
 
+// Tuned for speed
+.skip 8
 FUNCTION_NAME:
   xm.entsp (NSTACKWORDS)*4
   xm.stdsp  s3,s2,0

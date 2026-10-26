@@ -22,7 +22,7 @@
 #define b     a0
 #define len   a1
 
-.p2align 4
+.p2align 5
 FUNC_NAME:
   { mv t3, len                          ; xm.mkmski a2, 32                      }
   { slli a2, a2, 16                     ; xm.zexti t3, 1                        }

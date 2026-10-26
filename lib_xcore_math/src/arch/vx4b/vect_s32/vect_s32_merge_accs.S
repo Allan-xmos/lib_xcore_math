@@ -29,9 +29,11 @@
 
 
 .text
-.p2align 2
+.p2align 5
 
 
+// Tuned for speed
+.skip 16
 FUNCTION_NAME:
     xm.entsp (NSTACKWORDS)*4
     xm.stdsp  s3,s2,64

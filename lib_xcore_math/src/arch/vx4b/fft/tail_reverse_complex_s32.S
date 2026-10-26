@@ -30,8 +30,10 @@
 .text
 .global FUNCTION_NAME
 .type FUNCTION_NAME,@function
-.p2align 4
+.p2align 5
 
+// Tuned for speed
+.skip 12
 FUNCTION_NAME:
     xm.entsp (NSTACKWORDS)*4
     xm.stdsp  s3,s2,8

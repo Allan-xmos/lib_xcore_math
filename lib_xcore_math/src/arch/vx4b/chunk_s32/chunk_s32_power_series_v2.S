@@ -7,7 +7,7 @@
 #include "../asm_helper.h"
 
 .text
-.p2align 2
+.p2align 5
 
 /*  
   The difference between this and chunk_q30_power_series() is that this one doesn't require
@@ -42,6 +42,8 @@
 #define vec_coef    s4
 #define tmp         s5
 
+// Tuned for speed
+.skip 18
 FUNCTION_NAME:
 xm.entsp (NSTACKWORDS)*4
 xm.stdsp  s3,s2,0

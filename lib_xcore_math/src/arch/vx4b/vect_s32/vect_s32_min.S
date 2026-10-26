@@ -17,7 +17,7 @@ int32_t vect_s32_min(
 #include "../asm_helper.h"
 
 .text
-.p2align 2
+.p2align 5
 
 #define NSTACKVECS      (2)
 #define NSTACKWORDS     (8 + 8*NSTACKVECS)
@@ -38,6 +38,8 @@ int32_t vect_s32_min(
 .globl FUNCTION_NAME
 .type FUNCTION_NAME,@function
 
+// Tuned for speed
+.skip 4
 FUNCTION_NAME:
 
         xm.entsp (NSTACKWORDS)*4

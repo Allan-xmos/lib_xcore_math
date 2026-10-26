@@ -15,7 +15,7 @@ void fft_index_bit_reversal(
 .text
 .global FUNCTION_NAME
 .type FUNCTION_NAME,@function
-.p2align 4
+.p2align 5
 
 FUNCTION_NAME:
 xm.entsp (NSTACKWORDS)*4

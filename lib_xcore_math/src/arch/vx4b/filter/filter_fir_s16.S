@@ -48,8 +48,10 @@ int16_t filter_fir_s16(
 .text
 .globl FUNCTION_NAME;
 .type FUNCTION_NAME,@function
-.p2align 4
+.p2align 5
 
+// Tuned for speed
+.skip 8
 FUNCTION_NAME:
     xm.entsp (NSTACKWORDS)*4
     xm.stdsp s2, s3, 0

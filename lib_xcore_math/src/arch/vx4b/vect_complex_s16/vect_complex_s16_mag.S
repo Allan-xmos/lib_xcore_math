@@ -19,7 +19,7 @@ headroom_t vect_complex_s16_mag(
 */
 
 .text
-.p2align 2
+.p2align 5
 
 #define NSTACKVECS      (8)
 #define NSTACKWORDS     (8+(8*NSTACKVECS)+4)
@@ -47,6 +47,8 @@ headroom_t vect_complex_s16_mag(
 #define iter        s7
 #define table       s8
 
+// Tuned for speed
+.skip 28
 FUNCTION_NAME:
     xm.entsp (NSTACKWORDS)*4
     xm.stdsp  s3,s2,8

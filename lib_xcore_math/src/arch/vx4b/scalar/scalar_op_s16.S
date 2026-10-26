@@ -353,6 +353,9 @@ vpu_int16_acc_t vlmaccr16(
 #define FUNCTION_NAME   vlmaccr16
 #define NSTACKWORDS     (12)
 FUNC_START
+.p2align 5
+// Tuned for speed
+.skip 4
 FUNCTION_NAME:
 { nop                                   ; xm.entsp (NSTACKWORDS)*4              }
 { xm.mkmski s8, 16                      ; sw s8, 32                          (sp) }
@@ -450,6 +453,7 @@ int16_t vadddr16(
 #define FUNCTION_NAME   vadddr16
 #define NSTACKWORDS     (12 + 8*2)
 FUNC_START
+.p2align 5
 FUNCTION_NAME:
 { li a1, 8                              ; xm.entsp (NSTACKWORDS)*4              }
     xm.stdsp  s3,s2,8

@@ -41,10 +41,12 @@ void mat_mul_s8_x_s8_yield_s32 (
 #define K               s8
 
 .text
-.p2align 2
+.p2align 5
 
 
 
+// Tuned for speed
+.skip 8
 FUNCTION_NAME:
     xm.entsp (NSTACKWORDS)*4
     li t3, 0x200

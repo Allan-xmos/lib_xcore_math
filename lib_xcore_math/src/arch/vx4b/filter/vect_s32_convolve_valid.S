@@ -41,9 +41,11 @@ headroom_t vect_s32_convolve_valid(
 
 
 .text
-.p2align 2
+.p2align 5
 
 
+// Tuned for speed
+.skip 4
 FUNCTION_NAME:
 
     xm.entsp (NSTACKWORDS)*4

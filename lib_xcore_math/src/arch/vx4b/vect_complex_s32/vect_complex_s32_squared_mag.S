@@ -16,7 +16,7 @@ headroom_t vect_complex_s32_squared_mag(
 */
 
 .text
-.p2align 2
+.p2align 5
 
 
 #define NSTACKWORDS     (7+8+1)
@@ -40,6 +40,8 @@ headroom_t vect_complex_s32_squared_mag(
     
 
 
+// Tuned for speed
+.skip 20
 FUNCTION_NAME:
     xm.entsp (NSTACKWORDS)*4
     xm.stdsp  s3,s2,0
