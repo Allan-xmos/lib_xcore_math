@@ -68,6 +68,16 @@ pipeline {
               }
             } // Examples
 
+            stage('Fetch alignment vx4b') {
+              steps {
+                withTools(params.TOOLS_VX4_VERSION) {
+                  dir("${REPO}") {
+                    sh 'python3 lib_xcore_math/python/vx4b_fetch_align.py'
+                  }
+                }
+              }
+            } // Fetch alignment vx4b
+
             stage('Unit tests vx4b') {
               steps {
                 withTools(params.TOOLS_VX4_VERSION) {

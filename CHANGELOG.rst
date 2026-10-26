@@ -6,6 +6,9 @@ UNRELEASED
 
   * FIXED: Added headroom to `vect_s32_sqrt_prepare()` and `vect_s16_sqrt_prepare()` to avoid 
     overflow in corner cases.
+  * CHANGED: `vx4b` assembly functions whose loops are sensitive to instruction fetch alignment
+    start at a fixed, tuned phase of a 32-byte word, so their speed no longer depends on placement
+  * ADDED: `python/vx4b_fetch_align.py` to check (and fix) the tuned phases of the `vx4b` assembly
 
 3.0.0
 -----
